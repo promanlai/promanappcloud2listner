@@ -9,18 +9,19 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-//const moment = require('moment-timezone');
+const moment = require('moment-timezone');
 var dayjs = require('dayjs')
 
 const app = express();
+//const PORT = process.env.PORT || 5000;
 const PORT = process.env.PORT;
 const COLLECTION_USRLOGIN = process.env.MONGODB_USRLOGIN_COLLECTION;
 const COLLECTION_OFFICELOCATION = process.env.MONGODB_OFFICELOCATION_COLLECTION;
 const COLLECTION_DEPARTMENT = process.env.MONGODB_DEPARTMENT_COLLECTION;
 const COLLECTION_JOBTITLE = process.env.MONGODB_JOBTITLE_COLLECTION;
 const COLLECTION_SYSROLE = process.env.MONGODB_SYSROLE_COLLECTION;
-//console.log(COLLECTION_USRLOGIN);
-//console.log(COLLECTION_OFFICELOCATION);
+console.log(COLLECTION_USRLOGIN);
+console.log(COLLECTION_OFFICELOCATION);
 
 // 中介軟體
 app.use(cors());
@@ -53,8 +54,8 @@ const userSchema = new mongoose.Schema({
     acstatus: Boolean,
     app_createdate: { type: String, required: false},
     app_updatedate: { type: String, required: false},
-//    cloud_createdate: { type: Date, required: false},
-//    cloud_updatedate: { type: Date, required: false},    
+    cloud_createdate: { type: Date, required: false},
+    cloud_updatedate: { type: Date, required: false},    
 
 }) ;
 
@@ -119,15 +120,15 @@ app.post('/login', async (req, res) => {
 // 創建用戶
 app.post('/usersacct', async (req, res) => {    
     //const user = new User(req.body);
-    const { userid, username, password, sex, dept, post_title, email, officephone, mobile, role, officesite, address, birth, acstatus } = req.body;
+    const { userid, username, password, sex, dept, post_title, email, officephone, mobile, role, officesite, address, birth, acstatus, app_createdate, app_updatedate} = req.body;
 
     try {
-        let vapp_writedate = dayjs(new Date()).format('YYYY-MM-DD HH:mm:ss').toString();
-        //const vcloud_writedate = moment.tz('Asia/Hong_Kong').toDate();  
+        //const vapp_writedate = dayjs(new Date()).format('YYYY-MM-DD HH:mm:ss').toString();
+        const vcloud_writedate = moment.tz('Asia/Hong_Kong').toDate();  
         const hashedPassword = await bcrypt.hash(password, 10);
         const newUser = new User({ userid, username, password: hashedPassword , sex, dept, post_title, email, officephone, mobile, 
-                                   role, officesite, address, birth, acstatus, app_createdate: vapp_writedate, app_updatedate: vapp_writedate}); 
-                                   //cloud_createdate: vcloud_writedate, cloud_updatedate: vcloud_writedate });        
+                                   role, officesite, address, birth, acstatus, app_createdate, app_updatedate, 
+                                   cloud_createdate: vcloud_writedate, cloud_updatedate: vcloud_writedate });        
         //await user.save();
         await newUser.save();        
         //res.status(201).send(newUser); This line will crash program but only work with 'await user.save()'
@@ -151,15 +152,14 @@ app.get('/users/:id', async (req, res) => {
 
 // 更新用戶
 app.put('/users/:id', async (req, res) => {
-    const { userid, username, password, sex, dept, post_title, email, officephone, mobile, role, officesite, address, birth, acstatus } = req.body;
+    const { userid, username, password, sex, dept, post_title, email, officephone, mobile, role, officesite, address, birth, acstatus, app_updatedate } = req.body;
     try {
-       let vapp_updatedate = dayjs(new Date()).format('YYYY-MM-DD HH:mm:ss').toString();
-       //const vcloud_updatedate = moment.tz('Asia/Hong_Kong').toDate();      
+       //const vapp_updatedate = dayjs(new Date()).format('YYYY-MM-DD HH:mm:ss').toString();
+       const vcloud_updatedate = moment.tz('Asia/Hong_Kong').toDate();      
        const hashedPassword = await bcrypt.hash(password, 10);
        await User.findByIdAndUpdate(req.params.id, { userid, username, password: hashedPassword, sex, dept, post_title, email, 
                                                      officephone, mobile, role, officesite, address, birth, acstatus,
-                                                     app_updatedate: vapp_updatedate
-                                                     //,cloud_updatedate: vcloud_updatedate
+                                                     app_updatedate, cloud_updatedate: vcloud_updatedate
                                                      });       
        res.send({ message: '用戶更新成功' });
        //const user = await User.findByIdAndUpdate(req.params.id, req.body, { new: true });
